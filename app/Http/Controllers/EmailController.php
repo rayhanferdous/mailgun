@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\HelloEmail;
+use App\Jobs\SendEmailJob;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class EmailController extends Controller
 {
@@ -37,31 +34,11 @@ class EmailController extends Controller
             $attachmentPath = $request->file('attachment')->store('attachments');
         }
 
-        $helloEmail = new HelloEmail($mailData, $attachmentPath);
+        SendEmailJob::dispatch($mailData, $attachmentPath, $request->emails, $request->cc);
 
-        try {
-            $emails = array_filter($request->emails, fn($email) => !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL));
 
-            if (count($emails) === 0) {
-                return back()->with('error', 'No valid email addresses provided.');
-            }
+        return back()->with('success', 'Email sent successfully!');
 
-            $email = Mail::to($emails);
-
-            if ($request->cc) {
-                $ccEmails = array_filter($request->cc, fn($email) => !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL));
-                if (count($ccEmails) > 0) {
-                    $email->cc($ccEmails);
-                }
-            }
-
-            $email->send($helloEmail);
-
-            return back()->with('success', 'Email sent successfully!');
-        } catch (\Exception $e) {
-            Log::error('Email sending failed: ' . $e->getMessage());
-            return back()->with('error', 'Oops! There was an error sending the email.');
-        }
 
     }
 
