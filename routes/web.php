@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EmailController;
+use App\Models\SentEmail;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,9 +17,7 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Auth/Login');
-});
+Route::redirect("/", '/login');
 
 
 Route::middleware([
@@ -27,7 +26,8 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        $sentEmails = SentEmail::with('sent')->latest()->paginate(20);
+        return Inertia::render('Dashboard', ['sentEmails' => $sentEmails]);
     })->name('dashboard');
     Route::get('/send-email', [EmailController::class, 'showForm']);
     Route::post('/send-email', [EmailController::class, 'sendEmail'])->name('emails.send');

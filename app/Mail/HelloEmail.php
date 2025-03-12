@@ -63,8 +63,5 @@ class HelloEmail extends Mailable
         }
 
         return [];
-
     }
-
-
 }

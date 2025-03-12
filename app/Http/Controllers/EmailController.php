@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\HelloEmail;
+use App\Models\SentEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -57,14 +58,19 @@ class EmailController extends Controller
 
             $email->send($helloEmail);
 
+            SentEmail::create([
+                'sent_by' => auth()->id(),
+                'subject' => $mailData['subject'],
+                'body' => $mailData['body'],
+                'emails' => json_encode($request->emails),
+                'cc' => json_encode($request->cc),
+                'attachment_path' => $attachmentPath,
+            ]);
+
             return back()->with('success', 'Email sent successfully!');
         } catch (\Exception $e) {
             Log::error('Email sending failed: ' . $e->getMessage());
             return back()->with('error', 'Oops! There was an error sending the email.');
         }
-
     }
-
-
-
 }
