@@ -1,7 +1,5 @@
 <?php
 
-
-
 namespace App\Jobs;
 
 use App\Mail\HelloEmail;
@@ -12,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\SentEmail;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class SendEmailJob implements ShouldQueue
 {
@@ -21,7 +20,6 @@ class SendEmailJob implements ShouldQueue
     public $attachmentPath;
     public $emails;
     public $cc;
-
 
     public $tries = 3;
     public $timeout = 120;
@@ -37,21 +35,21 @@ class SendEmailJob implements ShouldQueue
 
     public function handle()
     {
+
         try {
+            if (is_null($this->emails) || !is_array($this->emails)) {
+                throw new \Exception('Emails must be an array and cannot be null.');
+            }
 
             $helloEmail = new HelloEmail($this->mailData, $this->attachmentPath);
 
-
             $email = Mail::to($this->emails);
 
-
-            if ($this->cc) {
+            if (!empty($this->cc)) {
                 $email->cc($this->cc);
             }
 
-
             $email->send($helloEmail);
-
 
             SentEmail::create([
                 'sent_by' => auth()->id(),
@@ -63,17 +61,13 @@ class SendEmailJob implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Error sending email: ' . $e->getMessage());
+            Log::error('Error sending email: ' . $e->getMessage());
             throw $e;
         }
     }
 
-
     public function failed(\Exception $exception)
     {
-        \Log::error('Email sending failed: ' . $exception->getMessage());
-
+        Log::error('Email sending failed: ' . $exception->getMessage());
     }
 }
-
-

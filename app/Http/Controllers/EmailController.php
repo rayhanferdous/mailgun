@@ -34,14 +34,12 @@ class EmailController extends Controller
             $attachmentPath = $request->file('attachment')->store('attachments');
         }
 
-        SendEmailJob::dispatch($mailData, $attachmentPath, $request->emails, $request->cc);
+        $cc = $request->cc ? array_filter($request->cc) : [];
 
+        SendEmailJob::dispatch($mailData, $attachmentPath, $request->emails, $cc);
 
         return back()->with('success', 'Email sent successfully!');
-
-
     }
-
 
 
 }
