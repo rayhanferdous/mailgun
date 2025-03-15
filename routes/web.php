@@ -29,6 +29,6 @@ Route::middleware([
         $sentEmails = SentEmail::with('sent')->latest()->paginate(20);
         return Inertia::render('Dashboard', ['sentEmails' => $sentEmails]);
     })->name('dashboard');
-    Route::get('/send-email', [EmailController::class, 'showForm']);
+    Route::get('/send-email', [EmailController::class, 'showForm'])->name('emails.show');
     Route::post('/send-email', [EmailController::class, 'sendEmail'])->name('emails.send');
 });
